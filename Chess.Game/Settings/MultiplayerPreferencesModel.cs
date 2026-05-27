@@ -25,15 +25,6 @@ namespace Chess.UI.Settings
         event Action<string> PlayerNameChanged;
     }
 
-    public enum AdapterType
-    {
-        Ethernet = 1,
-        WiFi = 2,
-        Loopback = 3,
-        Virtual = 4,
-        Other = 5,
-    }
-
     public enum AdapterVisibility
     {
         Hidden = 1,
@@ -48,7 +39,6 @@ namespace Chess.UI.Settings
         public string NetworkName { get; set; }
         public int ID { get; set; }
         public AdapterVisibility Visibility { get; set; }
-        public AdapterType Type { get; set; }
 
         public bool IsValid()
         {
@@ -101,9 +91,7 @@ namespace Chess.UI.Settings
                     AdapterName = adapter.AdapterName,
                     NetworkName = adapter.NetworkName,
                     ID = adapter.ID,
-                    Visibility = (AdapterVisibility)adapter.Visibility,
-                    Type = (AdapterType)adapter.Type,
-
+                    Visibility = (AdapterVisibility)adapter.Priority,
                 };
 
                 if (!networkAdapter.IsValid())

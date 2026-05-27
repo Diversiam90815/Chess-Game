@@ -16,17 +16,9 @@ namespace Chess.UI.UI
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            if (value is NetworkAdapter adapter)
-            {
-                string iconglyph = adapter.Type switch
-                {
-                    AdapterType.Ethernet => "\uE839",
-                    AdapterType.WiFi => "\uE701",
-                    _ => "\uE701",
-                };
+            if (value is NetworkAdapter)
+                return "\uE968";
 
-                return iconglyph;
-            }
             return "";
         }
         public object ConvertBack(object value, Type targetType, object parameter, string language) => throw new NotSupportedException();

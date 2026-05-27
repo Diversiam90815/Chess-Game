@@ -278,6 +278,9 @@ namespace Chess.UI.Services
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
         public struct NetworkAdapterInstance
         {
+            public int ID;
+            public int Priority;
+
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 250)]
             private byte[] _adapterNameBytes;
 
@@ -285,11 +288,8 @@ namespace Chess.UI.Services
             {
                 get
                 {
-                    // Find null terminator in the byte array
                     int nullIndex = Array.IndexOf(_adapterNameBytes, (byte)0);
                     int length = (nullIndex >= 0) ? nullIndex : _adapterNameBytes.Length;
-
-                    // Convert bytes to a string using UTF-8 encoding
                     return Encoding.UTF8.GetString(_adapterNameBytes, 0, length);
                 }
             }
@@ -301,18 +301,11 @@ namespace Chess.UI.Services
             {
                 get
                 {
-                    // Find null terminator in the byte array
                     int nullIndex = Array.IndexOf(_networkNameBytes, (byte)0);
                     int length = (nullIndex >= 0) ? nullIndex : _networkNameBytes.Length;
-
-                    // Convert bytes to a string using UTF-8 encoding
                     return Encoding.UTF8.GetString(_networkNameBytes, 0, length);
                 }
             }
-
-            public int ID;
-            public int Visibility;
-            public int Type;
         }
 
 
