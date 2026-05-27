@@ -21,7 +21,8 @@ namespace Chess.UI.Services
         event Action<GamePhase> GameStateChanged;
         event Action<PlayerCapturedPiece> PlayerCapturedPieceEvent;
         event Action<EndGameStateEvent> EndGameStateEvent;
-        event Action<ConnectionStatusEvent> ConnectionStatusEvent;
+        event Action<MultiplayerStateEvent> MultiplayerStateChanged;
+        event Action<MultiplayerStateEvent> OpponentDiscoveredEvent;
         event Action<Side> MultiPlayerChosenByRemote;
         event Action<Move, string> MoveExecuted;
         event Action MoveUndone;
@@ -59,6 +60,7 @@ namespace Chess.UI.Services
             BoardStateChanged = 9,
             PawnPromotion = 10,
             LegalMovesCalculated = 11,
+            OpponentDiscovered = 12,
         }
 
 
@@ -129,6 +131,10 @@ namespace Chess.UI.Services
 
                     case DelegateMessage.MultiplayerPlayerChosen:
                         HandlePlayerChosenForMultiplayerByRemote(data);
+                        break;
+
+                    case DelegateMessage.OpponentDiscovered:
+                        HandleOpponentDiscovered(data);
                         break;
 
                     case DelegateMessage.BoardStateChanged:
@@ -280,10 +286,25 @@ namespace Chess.UI.Services
                 return;
             }
 
-            ConnectionStatusEvent connectionEvent = Marshal.PtrToStructure<ConnectionStatusEvent>(data);
+            MultiplayerStateEvent connectionEvent = Marshal.PtrToStructure<MultiplayerStateEvent>(data);
 
-            Logger.LogInfo($"Connection status changed: {connectionEvent.ConnectionState}");
-            ConnectionStatusEvent?.Invoke(connectionEvent);
+            Logger.LogInfo($"Multiplayer state changed: {connectionEvent.State}");
+            MultiplayerStateChanged?.Invoke(connectionEvent);
+        }
+
+
+        private void HandleOpponentDiscovered(nint data)
+        {
+            if (data == nint.Zero)
+            {
+                Logger.LogError("HandleOpponentDiscovered received null data pointer");
+                return;
+            }
+
+            MultiplayerStateEvent opponentEvent = Marshal.PtrToStructure<MultiplayerStateEvent>(data);
+
+            Logger.LogInfo($"Opponent discovered: {opponentEvent.remoteName}");
+            OpponentDiscoveredEvent?.Invoke(opponentEvent);
         }
 
 
@@ -311,7 +332,8 @@ namespace Chess.UI.Services
         public event Action MoveUndone;
         public event Action<PlayerCapturedPiece> PlayerCapturedPieceEvent;
         public event Action<EndGameStateEvent> EndGameStateEvent;
-        public event Action<ConnectionStatusEvent> ConnectionStatusEvent;
+        public event Action<MultiplayerStateEvent> MultiplayerStateChanged;
+        public event Action<MultiplayerStateEvent> OpponentDiscoveredEvent;
         public event Action<Side> MultiPlayerChosenByRemote;
         public event Action LegalMovesCalculated;
         public event Action PawnPromotionRequired;

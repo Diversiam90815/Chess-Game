@@ -1,4 +1,4 @@
-﻿using Chess.UI.Services;
+using Chess.UI.Services;
 using System;
 using static Chess.UI.Services.EngineAPI;
 
@@ -7,21 +7,17 @@ namespace Chess.UI.Models
 {
     public interface IMultiplayerModel
     {
-        void ResetToInit();
-
-        void StartGameServer();
-
-        void StartGameClient();
-
-        void StartMultiplerGame();
-
         void StartMultiplayer();
 
-        void DisconnectMultiplayer();
+        void StopMultiplayer();
 
-        void ConnectToHost();
+        void FindOpponent();
 
-        void AnswerConnectionInvitation(bool accept);
+        void ConnectToOpponent(int index);
+
+        void RespondToConnectionRequest(bool accept);
+
+        void CancelSearch();
 
         void SetLocalPlayerColor(EngineAPI.Side color);
 
@@ -32,20 +28,13 @@ namespace Chess.UI.Models
 
         event Action<string> OnConnectionErrorOccured;
 
-        event Action<ConnectionState, string> OnConnectionStatusChanged;
+        event Action<MultiplayerState, string> OnMultiplayerStateChanged;
+
+        event Action<string> OnOpponentDiscovered;
 
         event Action<Side> OnPlayerChanged;
 
         event Action<Side> OnMultiplayerPlayerSetFromRemote;
-    }
-
-
-    public enum MultiplayerMode
-    {
-        None = 0,
-        Init = 1,
-        Server = 2,
-        Client = 3
     }
 
 
@@ -57,7 +46,8 @@ namespace Chess.UI.Models
         public MultiplayerModel(ICommunicationLayer backendCommunication)
         {
             _backendCommunication = backendCommunication;
-            _backendCommunication.ConnectionStatusEvent += HandleConnectionStatusUpdates;
+            _backendCommunication.MultiplayerStateChanged += HandleMultiplayerStateUpdates;
+            _backendCommunication.OpponentDiscoveredEvent += HandleOpponentDiscovered;
             _backendCommunication.PlayerChanged += HandlePlayerChanged;
             _backendCommunication.MultiPlayerChosenByRemote += HandleLocalPlayerChosenByRemote;
         }
@@ -65,51 +55,38 @@ namespace Chess.UI.Models
 
         public void StartMultiplayer()
         {
-            EngineAPI.StartedMultiplayer();
+            EngineAPI.StartMultiplayer();
         }
 
 
-        public void HandlePlayerChanged(Side player)
+        public void StopMultiplayer()
         {
-            OnPlayerChanged?.Invoke(player);
+            EngineAPI.StopMultiplayer();
         }
 
 
-        private void HandleConnectionStatusUpdates(ConnectionStatusEvent connectionStatusEvent)
+        public void FindOpponent()
         {
-            ConnectionState connectionState = connectionStatusEvent.ConnectionState;
-
-            if (connectionState == ConnectionState.Error)
-            {
-                OnConnectionErrorOccured?.Invoke(connectionStatusEvent.errorMessage);
-                return;
-            }
-
-            OnConnectionStatusChanged?.Invoke(connectionState, connectionStatusEvent.remoteName);
+            EngineAPI.FindOpponent();
         }
 
 
-        public void StartGameServer()
+        public void ConnectToOpponent(int index)
         {
-            EngineAPI.StartRemoteDiscovery(true);
+            EngineAPI.ConnectToOpponent(index);
         }
 
 
-        public void StartGameClient()
+        public void RespondToConnectionRequest(bool accept)
         {
-            EngineAPI.StartRemoteDiscovery(false);
+            EngineAPI.RespondToConnectionRequest(accept);
         }
 
 
-        public void ConnectToHost()
+        public void CancelSearch()
         {
-            EngineAPI.SendConnectionRequestToHost();
-        }
-
-
-        public void ResetToInit()
-        {
-            EngineAPI.StoppedMultiplayer();
+            EngineAPI.StopMultiplayer();
+            EngineAPI.StartMultiplayer();
         }
 
 
@@ -125,25 +102,9 @@ namespace Chess.UI.Models
         }
 
 
-        public void StartMultiplerGame()
+        public void HandlePlayerChanged(Side player)
         {
-            // TODO
-
-            //EngineAPI.StartMultiplayerGame();
-        }
-
-
-        public void DisconnectMultiplayer()
-        {
-            // TODO
-
-            //EngineAPI.DisconnectMultiplayerGame();
-        }
-
-
-        public void AnswerConnectionInvitation(bool accepted)
-        {
-            EngineAPI.AnswerConnectionInvitation(accepted);
+            OnPlayerChanged?.Invoke(player);
         }
 
 
@@ -153,9 +114,29 @@ namespace Chess.UI.Models
         }
 
 
+        private void HandleMultiplayerStateUpdates(MultiplayerStateEvent stateEvent)
+        {
+            MultiplayerState state = stateEvent.State;
+
+            if (state == MultiplayerState.Error)
+            {
+                OnConnectionErrorOccured?.Invoke(stateEvent.errorMessage);
+                return;
+            }
+
+            OnMultiplayerStateChanged?.Invoke(state, stateEvent.remoteName);
+        }
+
+
+        private void HandleOpponentDiscovered(MultiplayerStateEvent opponentEvent)
+        {
+            OnOpponentDiscovered?.Invoke(opponentEvent.remoteName);
+        }
+
 
         public event Action<string> OnConnectionErrorOccured;
-        public event Action<ConnectionState, string> OnConnectionStatusChanged;
+        public event Action<MultiplayerState, string> OnMultiplayerStateChanged;
+        public event Action<string> OnOpponentDiscovered;
         public event Action<Side> OnPlayerChanged;
         public event Action<Side> OnMultiplayerPlayerSetFromRemote;
     }
