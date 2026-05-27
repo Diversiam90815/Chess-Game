@@ -21,9 +21,6 @@ namespace Chess.UI.Views.Controls
         }
 
 
-        /// <summary>
-        /// Called when the control becomes visible to initialize the multiplayer session.
-        /// </summary>
         public void Initialize()
         {
             _viewModel.ResetViewState();
@@ -31,52 +28,38 @@ namespace Chess.UI.Views.Controls
         }
 
 
-        private void HostGameButton_Click(object sender, RoutedEventArgs e)
+        private void FindOpponentButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-            _viewModel.EnterServerMultiplayerMode();
+            _viewModel.FindOpponent();
         }
 
 
-        private void JoinGameButton_Click(object sender, RoutedEventArgs e)
+        private void CancelSearchButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-            _viewModel.EnterClientMultiplayerMode();
+            _viewModel.CancelSearch();
         }
 
 
-        private void HostAcceptButton_Click(object sender, RoutedEventArgs e)
+        private void ConnectButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-            _viewModel.AcceptClientConnection();
+            _viewModel.ConnectToOpponent();
         }
 
 
-        private void HostDeclineButton_Click(object sender, RoutedEventArgs e)
+        private void AcceptButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-            _viewModel.DeclineClientConnection();
+            _viewModel.AcceptConnectionRequest();
         }
 
 
-        private void JoinAcceptButton_Click(object sender, RoutedEventArgs e)
+        private void DeclineButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.OnButtonClicked();
-            _viewModel.AcceptConnectingToHost();
-        }
-
-
-        private void JoinDiscardButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.OnButtonClicked();
-            _viewModel.DeclineConnectingToHost();
-        }
-
-
-        private void AbortWaitButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.OnButtonClicked();
-            _viewModel.DisplayClientView();
+            _viewModel.DeclineConnectionRequest();
         }
 
 

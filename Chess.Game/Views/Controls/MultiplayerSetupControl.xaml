@@ -10,7 +10,7 @@
 
     <Grid x:Name="Rootgrid">
 
-        <!-- Init View: Show player name + Host/Join buttons -->
+        <!-- Init View: Show player name + Find Opponent button -->
         <StackPanel
             Name="InitView"
             Orientation="Vertical"
@@ -43,78 +43,98 @@
                     TextWrapping="Wrap" />
             </StackPanel>
 
+            <Button
+                Name="FindOpponentButton"
+                Margin="0,16,0,0"
+                HorizontalAlignment="Center"
+                Click="FindOpponentButton_Click"
+                Content="Find Opponent"
+                Style="{ThemeResource AccentButtonStyle}" />
+        </StackPanel>
+
+
+        <!-- Searching: Looking for opponents -->
+        <StackPanel
+            Name="SearchingView"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Vertical"
+            Spacing="16"
+            Visibility="{x:Bind _viewModel.SearchingView, Mode=OneWay}">
+
+            <TextBlock
+                HorizontalAlignment="Center"
+                FontSize="16"
+                Text="Searching for opponents..." />
             <ProgressRing
-                Margin="16"
-                IsActive="{x:Bind _viewModel.Processing, Mode=TwoWay}" />
-
-            <StackPanel
+                Width="40"
                 Height="40"
+                IsActive="True" />
+            <Button
+                Name="CancelSearchButton"
                 HorizontalAlignment="Center"
-                Orientation="Horizontal"
-                Spacing="12">
-                <Button
-                    Name="HostGameButton"
-                    Click="HostGameButton_Click"
-                    Content="Host a Game"
-                    IsEnabled="{x:Bind _viewModel.HostGameButtonEnabled, Mode=TwoWay}"
-                    Style="{ThemeResource AccentButtonStyle}" />
-                <Button
-                    Name="JoinGameButton"
-                    Click="JoinGameButton_Click"
-                    Content="Join a Game"
-                    IsEnabled="{x:Bind _viewModel.ClientGameButtonEnabled, Mode=TwoWay}" />
-            </StackPanel>
+                Click="CancelSearchButton_Click"
+                Content="Cancel" />
         </StackPanel>
 
 
-        <!-- Host received connection request from client -->
+        <!-- Opponent Found: Show discovered opponents list -->
         <StackPanel
-            Name="ClientRequestedConnectionView"
+            Name="OpponentFoundView"
+            HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Orientation="Vertical"
-            Spacing="24"
-            Visibility="{x:Bind _viewModel.ClientRequestedConnectionView, Mode=OneWay}">
-
-            <TextBlock
-                HorizontalAlignment="Center"
-                FontSize="20"
-                FontWeight="SemiBold"
-                Text="{x:Bind _viewModel.RemotePlayerName, Mode=OneWay}" />
-            <TextBlock
-                HorizontalAlignment="Center"
-                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="wants to join. Accept this request?" />
-
-            <StackPanel
-                HorizontalAlignment="Center"
-                Orientation="Horizontal"
-                Spacing="12">
-                <Button
-                    Name="HostAcceptButton"
-                    Click="HostAcceptButton_Click"
-                    Content="Accept"
-                    Style="{ThemeResource AccentButtonStyle}" />
-                <Button
-                    Name="HostDeclineButton"
-                    Click="HostDeclineButton_Click"
-                    Content="Decline" />
-            </StackPanel>
-        </StackPanel>
-
-
-        <!-- Client found a host on the network -->
-        <StackPanel
-            Name="ClientFoundHostView"
-            VerticalAlignment="Center"
-            Orientation="Vertical"
-            Spacing="24"
-            Visibility="{x:Bind _viewModel.ClientFoundHostView, Mode=TwoWay}">
+            Spacing="16"
+            Visibility="{x:Bind _viewModel.OpponentFoundView, Mode=OneWay}">
 
             <TextBlock
                 HorizontalAlignment="Center"
                 FontSize="14"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="Found" />
+                Text="Opponents found" />
+
+            <ListView
+                MaxHeight="200"
+                HorizontalAlignment="Center"
+                ItemsSource="{x:Bind _viewModel.DiscoveredOpponents, Mode=OneWay}"
+                SelectedIndex="{x:Bind _viewModel.SelectedOpponentIndex, Mode=TwoWay}"
+                SelectionMode="Single">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <TextBlock
+                            Padding="8,4"
+                            FontSize="16"
+                            FontWeight="SemiBold"
+                            Text="{x:Bind}" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <StackPanel
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Spacing="12">
+                <Button
+                    Name="ConnectButton"
+                    Click="ConnectButton_Click"
+                    Content="Connect"
+                    Style="{ThemeResource AccentButtonStyle}" />
+                <Button
+                    Name="CancelConnectButton"
+                    Click="CancelSearchButton_Click"
+                    Content="Cancel" />
+            </StackPanel>
+        </StackPanel>
+
+
+        <!-- Connection Requested: Someone wants to connect to us -->
+        <StackPanel
+            Name="ConnectionRequestedView"
+            VerticalAlignment="Center"
+            Orientation="Vertical"
+            Spacing="24"
+            Visibility="{x:Bind _viewModel.ConnectionRequestedView, Mode=OneWay}">
+
             <TextBlock
                 HorizontalAlignment="Center"
                 FontSize="20"
@@ -123,52 +143,52 @@
             <TextBlock
                 HorizontalAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="on the network. Do you want to join?" />
+                Text="wants to connect. Accept?" />
 
             <StackPanel
                 HorizontalAlignment="Center"
                 Orientation="Horizontal"
                 Spacing="12">
                 <Button
-                    Name="JoinAcceptButton"
-                    Click="JoinAcceptButton_Click"
-                    Content="Join"
+                    Name="AcceptButton"
+                    Click="AcceptButton_Click"
+                    Content="Accept"
                     Style="{ThemeResource AccentButtonStyle}" />
                 <Button
-                    Name="JoinDiscardButton"
-                    Click="JoinDiscardButton_Click"
+                    Name="DeclineButton"
+                    Click="DeclineButton_Click"
                     Content="Decline" />
             </StackPanel>
         </StackPanel>
 
 
-        <!-- Client waiting for host response -->
+        <!-- Waiting for Response: We sent a connection request -->
         <StackPanel
-            Name="ClientWaitingForResponseView"
+            Name="WaitingForResponseView"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Orientation="Vertical"
             Spacing="16"
-            Visibility="{x:Bind _viewModel.ClientWaitingForResponseView, Mode=TwoWay}">
+            Visibility="{x:Bind _viewModel.WaitingForResponseView, Mode=OneWay}">
 
             <TextBlock
                 HorizontalAlignment="Center"
                 FontSize="16"
-                Text="Waiting for a response from" />
+                Text="Connecting to" />
             <TextBlock
                 HorizontalAlignment="Center"
                 FontSize="18"
                 FontWeight="SemiBold"
-                Text="{x:Bind _viewModel.RemotePlayerName}" />
+                Text="{x:Bind _viewModel.RemotePlayerName, Mode=OneWay}" />
             <ProgressRing
                 Width="40"
                 Height="40"
                 Margin="0,8,0,0" />
             <Button
-                Name="AbortWaitButton"
+                Name="AbortConnectionButton"
                 Margin="0,12,0,0"
                 HorizontalAlignment="Center"
-                Click="AbortWaitButton_Click"
+                Click="CancelSearchButton_Click"
                 Content="Cancel" />
         </StackPanel>
 
