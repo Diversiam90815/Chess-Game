@@ -86,6 +86,7 @@ namespace Chess.UI.Models
         public void CancelSearch()
         {
             EngineAPI.StopMultiplayer();
+            EngineAPI.StartMultiplayer();
         }
 
 
