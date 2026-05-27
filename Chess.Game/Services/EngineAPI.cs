@@ -66,19 +66,26 @@ namespace Chess.UI.Services
         #region Multiplayer
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void StartedMultiplayer();
+        public static extern void StartMultiplayer();
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void StartRemoteDiscovery([MarshalAs(UnmanagedType.I1)] bool isHost);
+        public static extern void StopMultiplayer();
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void AnswerConnectionInvitation([MarshalAs(UnmanagedType.I1)] bool accept);
+        public static extern void FindOpponent();
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SendConnectionRequestToHost();
+        public static extern int GetDiscoveredOpponentCount();
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void StoppedMultiplayer();
+        [return: MarshalAs(UnmanagedType.I1)]
+        public static extern bool GetDiscoveredOpponentAtIndex(int index, StringBuilder name, int maxLen);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ConnectToOpponent(int index);
+
+        [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void RespondToConnectionRequest([MarshalAs(UnmanagedType.I1)] bool accept);
 
         [DllImport(LOGIC_API_PATH, CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetLocalPlayer(int iLocalPlayer);
@@ -198,19 +205,18 @@ namespace Chess.UI.Services
             Hard = 3,
         }
 
-        public enum ConnectionState
+        public enum MultiplayerState
         {
             None = 0,
-            HostingSession = 1,
-            WaitingForARemote = 2,
-            Connected = 3,
-            Disconnected = 4,
-            Error = 5,
-            ConnectionRequested = 6, // Client has requested a connection to the host
-            PendingHostApproval = 7, // Waiting for the host to approve the connection
-            ClientFoundHost = 9, // Client found a host
-            SetPlayerColor = 10,
-            GameStarted = 11,
+            Searching = 1,
+            OpponentFound = 2,
+            ConnectionRequested = 3,
+            Connected = 4,
+            PlayerSetup = 5,
+            ReadyToStart = 6,
+            InGame = 7,
+            Disconnected = 8,
+            Error = 9
         }
 
         public enum GamePhase
@@ -250,9 +256,9 @@ namespace Chess.UI.Services
 
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct ConnectionStatusEvent
+        public struct MultiplayerStateEvent
         {
-            public ConnectionState ConnectionState;
+            public MultiplayerState State;
 
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 250)]
             public string remoteName;
